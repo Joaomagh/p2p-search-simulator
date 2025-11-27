@@ -1,0 +1,35 @@
+{
+  "num_nodes": 12,
+  "min_neighbors": 2,
+  "max_neighbors": 4,
+  "resources": {
+    "n1": ["fileA", "fileB"],
+    "n2": ["fileC"],
+    "n3": ["fileD", "fileE"],
+    "n4": ["fileF"],
+    "n5": ["fileG", "fileH"],
+    "n6": ["fileI"],
+    "n7": ["fileJ", "fileK"],
+    "n8": ["fileL"],
+    "n9": ["fileM", "fileN"],
+    "n10": ["fileO"],
+    "n11": ["fileP", "fileQ"],
+    "n12": ["fileR"]
+  },
+  "edges": [
+    ["n1", "n2"],
+    ["n1", "n3"],
+    ["n1", "n4"],
+    ["n2", "n5"],
+    ["n2", "n6"],
+    ["n3", "n7"],
+    ["n3", "n8"],
+    ["n4", "n9"],
+    ["n4", "n10"],
+    ["n5", "n11"],
+    ["n6", "n12"],
+    ["n7", "n8"],
+    ["n9", "n10"],
+    ["n11", "n12"]
+  ]
+}
