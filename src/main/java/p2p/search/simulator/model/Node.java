@@ -6,20 +6,12 @@ import p2p.search.simulator.strategy.SearchStrategy;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Representa um nÃ³ (peer) na rede P2P.
- * Cada nÃ³ possui um ID, lista de recursos e um cache para buscas informadas.
- */
 public class Node {
     
     private final String id;
     private final Set<String> resources;
     private final Set<String> neighbors;
-    
-    // Cache para algoritmos informados: Map<Resource, NodeID que possui o recurso>
     private final Map<String, String> cache;
-    
-    // EstratÃ©gia de busca configurada para este nÃ³
     private SearchStrategy searchStrategy;
     
     public Node(String id, List<String> resources) {
@@ -29,61 +21,35 @@ public class Node {
         this.cache = new ConcurrentHashMap<>();
     }
     
-    /**
-     * Adiciona um vizinho a este nÃ³.
-     */
     public void addNeighbor(String neighborId) {
         neighbors.add(neighborId);
     }
     
-    /**
-     * Verifica se este nÃ³ possui o recurso especificado.
-     */
     public boolean hasResource(String resource) {
         return resources.contains(resource);
     }
     
-    /**
-     * Adiciona uma entrada no cache: recurso -> nÃ³ que o possui.
-     * Usado pelos algoritmos informados apÃ³s uma busca bem-sucedida.
-     */
     public void addToCache(String resource, String nodeId) {
         cache.put(resource, nodeId);
     }
     
-    /**
-     * Consulta o cache para saber se conhece onde estÃ¡ um recurso.
-     */
     public Optional<String> getCachedLocation(String resource) {
         return Optional.ofNullable(cache.get(resource));
     }
     
-    /**
-     * Limpa o cache deste nÃ³.
-     */
     public void clearCache() {
         cache.clear();
     }
     
-    /**
-     * Define a estratÃ©gia de busca para este nÃ³.
-     */
     public void setSearchStrategy(SearchStrategy strategy) {
         this.searchStrategy = strategy;
     }
     
-    /**
-     * Retorna a estratÃ©gia de busca configurada.
-     */
     public SearchStrategy getSearchStrategy() {
         return searchStrategy;
     }
     
-    /**
-     * Recebe e processa uma mensagem.
-     * Delega o processamento para a estratÃ©gia de busca configurada.
-     */
-    public void receiveMessage(Message message, SimulationManager simulationManager) {
+    public void receiveMessage(Message message, SimulationManager simulationManager, String senderId) {
         if (searchStrategy == null) {
             throw new IllegalStateException(
                 "No search strategy configured for node " + id
@@ -92,25 +58,18 @@ public class Node {
         
         switch (message.getType()) {
             case QUERY:
-                // Delega para a estratÃ©gia processar a query
-                searchStrategy.processQuery(this, message, simulationManager);
+                searchStrategy.processQuery(this, message, simulationManager, senderId);
                 break;
                 
             case RESPONSE:
-                // Processa resposta (para algoritmos informados atualizarem o cache)
-                if (searchStrategy.isInformed() && message.isSuccess()) {
+                if (message.isSuccess()) {
                     addToCache(message.getResource(), message.getSource());
                 }
-                
-                // Se nÃ£o for o nÃ³ de origem, propaga a resposta de volta
-                if (!this.id.equals(message.getTarget())) {
-                    simulationManager.sendMessage(message, this.id);
-                }
+                simulationManager.continueResponse(this, message);
                 break;
         }
     }
     
-    // Getters
     public String getId() {
         return id;
     }

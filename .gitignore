@@ -9,6 +9,7 @@ dependency-reduced-pom.xml
 # IDE/state folders
 .idea/
 
+
 # Logs and JVM crash dumps
 *.log
 hs_err_pid*

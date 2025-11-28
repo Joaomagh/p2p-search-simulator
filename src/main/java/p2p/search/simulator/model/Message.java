@@ -2,32 +2,22 @@ package p2p.search.simulator.model;
 
 import java.util.*;
 
-/**
- * Representa uma mensagem trocada entre nÃ³s na rede P2P.
- * Usada para simulaÃ§Ã£o de comunicaÃ§Ã£o (sem sockets/RMI).
- */
 public class Message {
     
-    /**
-     * Tipos de mensagem.
-     */
     public enum Type {
-        QUERY,      // Busca por um recurso
-        RESPONSE    // Resposta (recurso encontrado ou nÃ£o)
+        QUERY,
+        RESPONSE
     }
     
-    private final String id;              // UUID Ãºnico da mensagem
-    private final Type type;               // Tipo da mensagem
-    private final String source;           // ID do nÃ³ de origem
-    private final String target;           // ID do nÃ³ de destino
-    private final String resource;         // Recurso sendo buscado
-    private final int ttl;                 // Time-To-Live (hops restantes)
-    private final List<String> pathHistory; // Caminho percorrido pela mensagem
-    private final boolean success;         // Se a busca foi bem-sucedida (para RESPONSE)
+    private final String id;
+    private final Type type;
+    private final String source;
+    private final String target;
+    private final String resource;
+    private final int ttl;
+    private final List<String> pathHistory;
+    private final boolean success;
     
-    /**
-     * Construtor privado - use o Builder.
-     */
     private Message(String id, Type type, String source, String target, 
                    String resource, int ttl, List<String> pathHistory, boolean success) {
         this.id = id;
@@ -40,9 +30,6 @@ public class Message {
         this.success = success;
     }
     
-    /**
-     * Cria uma nova mensagem com TTL decrementado.
-     */
     public Message decrementTTL() {
         return new Builder()
             .id(this.id)
@@ -56,9 +43,6 @@ public class Message {
             .build();
     }
     
-    /**
-     * Cria uma nova mensagem adicionando um nÃ³ ao path.
-     */
     public Message addToPath(String nodeId) {
         List<String> newPath = new ArrayList<>(this.pathHistory);
         newPath.add(nodeId);
@@ -75,29 +59,22 @@ public class Message {
             .build();
     }
     
-    /**
-     * Cria uma mensagem de RESPONSE a partir de uma QUERY.
-     */
     public Message createResponse(String responderNodeId, boolean success) {
-        // O caminho de resposta Ã© o inverso do caminho da query
         List<String> reversePath = new ArrayList<>(this.pathHistory);
         Collections.reverse(reversePath);
         
         return new Builder()
-            .id(this.id)  // MantÃ©m o mesmo ID da query original
+            .id(this.id)
             .type(Type.RESPONSE)
             .source(responderNodeId)
-            .target(this.source)  // Retorna para o nÃ³ de origem da query
+            .target(this.source)
             .resource(this.resource)
-            .ttl(reversePath.size())  // TTL suficiente para retornar
+            .ttl(reversePath.size())
             .pathHistory(reversePath)
             .success(success)
             .build();
     }
     
-    /**
-     * Retorna um builder pré-populado a partir desta mensagem.
-     */
     public Builder toBuilder() {
         return new Builder()
             .id(this.id)
@@ -110,7 +87,6 @@ public class Message {
             .success(this.success);
     }
     
-    // Getters
     public String getId() {
         return id;
     }
@@ -166,9 +142,6 @@ public class Message {
         return Objects.hash(id);
     }
     
-    /**
-     * Builder para construÃ§Ã£o de mensagens.
-     */
     public static class Builder {
         private String id = UUID.randomUUID().toString();
         private Type type;
@@ -235,7 +208,6 @@ public class Message {
                 throw new IllegalStateException("Message resource cannot be null");
             }
             
-            // Adiciona o source ao path se estiver vazio
             if (pathHistory.isEmpty()) {
                 pathHistory.add(source);
             }

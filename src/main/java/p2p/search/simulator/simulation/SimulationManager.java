@@ -14,16 +14,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-/**
- * Gerencia animação, troca de mensagens e coleta de métricas da simulação.
- */
 public class SimulationManager {
 
     private static final long EDGE_HIGHLIGHT_DELAY_MS = 100;
@@ -32,9 +26,9 @@ public class SimulationManager {
     private final NetworkTopology topology;
     private final Queue<PendingMessage> messageQueue = new LinkedList<>();
     private final Set<String> seenMessages = ConcurrentHashMap.newKeySet();
+    private final Set<String> visitedNodes = ConcurrentHashMap.newKeySet();
     private final AtomicInteger messageCount = new AtomicInteger(0);
     private final AtomicInteger stepCounter = new AtomicInteger(0);
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private NetworkVisualizer visualizer;
     private long visualizationDelay = 300;
@@ -43,8 +37,6 @@ public class SimulationManager {
     private volatile boolean searchCompleted;
     private volatile boolean searchSucceeded;
     private List<String> resultPath = new ArrayList<>();
-    private String resultResource;
-    private String resultSource;
 
     public SimulationManager(NetworkTopology topology) {
         this.topology = topology;
@@ -52,13 +44,6 @@ public class SimulationManager {
 
     public void setLogConsumer(Consumer<String> logConsumer) {
         this.logConsumer = logConsumer != null ? logConsumer : msg -> {};
-    }
-
-    public CompletableFuture<SearchResult> runSearchAsync(String sourceNodeId,
-                                                          String resource,
-                                                          int ttl,
-                                                          SearchStrategy strategy) {
-        return CompletableFuture.supplyAsync(() -> runSearch(sourceNodeId, resource, ttl, strategy), executor);
     }
 
     public SearchResult runSearch(String sourceNodeId,
@@ -91,18 +76,22 @@ public class SimulationManager {
         processMessages();
         long duration = System.currentTimeMillis() - start;
 
+        if (!searchSucceeded) {
+            if (resultPath.isEmpty()) {
+                resultPath.add(sourceNodeId);
+            }
+            log(String.format("Recurso '%s' não encontrado (TTL esgotado).", resource));
+        }
+        
         if (!searchCompleted) {
             searchCompleted = true;
-            searchSucceeded = false;
-            resultPath = new ArrayList<>();
-            resultPath.add(sourceNodeId);
-            log(String.format("Recurso '%s' não encontrado (TTL esgotado).", resource));
         }
 
         return new SearchResult(
             searchSucceeded,
             Math.max(0, resultPath.size() - 1),
             messageCount.get(),
+            visitedNodes.size(),
             duration,
             resource,
             sourceNodeId,
@@ -120,13 +109,12 @@ public class SimulationManager {
     private void resetInternalState(String resource, String source) {
         messageQueue.clear();
         seenMessages.clear();
+        visitedNodes.clear();
         messageCount.set(0);
         stepCounter.set(0);
         searchCompleted = false;
         searchSucceeded = false;
         resultPath = new ArrayList<>();
-        resultResource = resource;
-        resultSource = source;
     }
 
     private void processMessages() {
@@ -152,44 +140,32 @@ public class SimulationManager {
             Node targetNode = maybeTarget.get();
 
             if (visualizer != null && senderId != null && !senderId.equals(message.getTarget())) {
-                animatePath(senderId, message.getTarget());
+                visualizer.highlightEdge(senderId, message.getTarget(), EDGE_HIGHLIGHT_DELAY_MS);
             }
 
             logStep(senderId, message.getTarget(), message);
 
             messageCount.incrementAndGet();
+            visitedNodes.add(message.getTarget());
 
             if (visualizer != null) {
                 visualizer.setNodeState(message.getTarget(), NetworkVisualizer.NodeVisualState.VISITED);
                 sleep(visualizationDelay);
             }
 
-            Message enriched = message.addToPath(message.getTarget());
-            targetNode.receiveMessage(enriched, this);
+            Message enriched = message;
+            if (message.getType() == Message.Type.QUERY) {
+                enriched = message.addToPath(message.getTarget());
+            }
+            targetNode.receiveMessage(enriched, this, senderId);
 
             if (visualizer != null && !searchSucceeded) {
                 visualizer.setNodeState(message.getTarget(), NetworkVisualizer.NodeVisualState.IDLE);
             }
-
-            if (searchCompleted) {
-                messageQueue.clear();
-                break;
-            }
-        }
-    }
-
-    private void animatePath(String from, String to) {
-        if (visualizer == null || from == null || to == null || from.equals(to)) {
-            return;
         }
 
-        List<String> path = topology.shortestPath(from, to);
-        if (path.isEmpty()) {
-            path = List.of(from, to);
-        }
-
-        for (int i = 0; i < path.size() - 1; i++) {
-            visualizer.highlightEdge(path.get(i), path.get(i + 1), EDGE_HIGHLIGHT_DELAY_MS);
+        if (!searchSucceeded && !searchCompleted) {
+            searchCompleted = true;
         }
     }
 
@@ -224,10 +200,9 @@ public class SimulationManager {
     }
 
     public void completeSuccess(Node node, Message message) {
-        if (searchCompleted) {
+        if (searchSucceeded) {
             return;
         }
-        searchCompleted = true;
         searchSucceeded = true;
 
         List<String> path = new ArrayList<>(message.getPathHistory());
@@ -243,31 +218,40 @@ public class SimulationManager {
             sleep(SUCCESS_PAUSE_MS);
         }
 
-        propagateCache(message.getResource(), node.getId(), path);
-        animateBacktrack(path);
+        startResponseFlow(node, message);
     }
 
-    private void propagateCache(String resource, String ownerNodeId, List<String> path) {
-        for (String nodeId : path) {
-            topology.getNode(nodeId).ifPresent(node -> node.addToCache(resource, ownerNodeId));
-        }
-    }
+    private void startResponseFlow(Node node, Message originalQuery) {
+        Message response = originalQuery.createResponse(node.getId(), true);
+        List<String> reversePath = response.getPathHistory();
 
-    private void animateBacktrack(List<String> path) {
-        if (visualizer == null) {
+        if (reversePath.size() < 2) {
+            searchCompleted = true;
             return;
         }
 
-        for (int i = path.size() - 1; i > 0; i--) {
-            String from = path.get(i);
-            String to = path.get(i - 1);
-            visualizer.highlightEdge(from, to, EDGE_HIGHLIGHT_DELAY_MS);
+        messageQueue.clear();
+
+        for (int i = 0; i < reversePath.size(); i++) {
+            String current = reversePath.get(i);
+            
+            Message hop = response.toBuilder()
+                .target(current)
+                .build();
+            
+            sendMessage(hop, i > 0 ? reversePath.get(i - 1) : null);
         }
+        
+        searchCompleted = true;
+    }
+
+    public void continueResponse(Node currentNode, Message responseMessage) {
     }
 
     public void reset() {
         messageQueue.clear();
         seenMessages.clear();
+        visitedNodes.clear();
         messageCount.set(0);
         stepCounter.set(0);
         searchCompleted = false;
@@ -313,6 +297,7 @@ public class SimulationManager {
         private final boolean success;
         private final int hops;
         private final int totalMessages;
+        private final int visitedNodes;
         private final long durationMs;
         private final String resource;
         private final String sourceNode;
@@ -321,6 +306,7 @@ public class SimulationManager {
         public SearchResult(boolean success,
                             int hops,
                             int totalMessages,
+                            int visitedNodes,
                             long durationMs,
                             String resource,
                             String sourceNode,
@@ -328,6 +314,7 @@ public class SimulationManager {
             this.success = success;
             this.hops = hops;
             this.totalMessages = totalMessages;
+            this.visitedNodes = visitedNodes;
             this.durationMs = durationMs;
             this.resource = resource;
             this.sourceNode = sourceNode;
@@ -344,6 +331,10 @@ public class SimulationManager {
 
         public int getTotalMessages() {
             return totalMessages;
+        }
+
+        public int getVisitedNodes() {
+            return visitedNodes;
         }
 
         public long getDurationMs() {

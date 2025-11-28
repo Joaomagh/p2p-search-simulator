@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * ResponsÃ¡vel pela visualizaÃ§Ã£o da rede usando GraphStream.
+ * Responsavel pela visualização da rede usando GraphStream.
  */
 public class NetworkVisualizer {
 

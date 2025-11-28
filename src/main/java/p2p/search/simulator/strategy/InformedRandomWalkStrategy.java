@@ -9,13 +9,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Estratégia Random Walk informada: tenta envio direto via cache antes de escolher vizinho aleatório.
- */
+
 public class InformedRandomWalkStrategy implements SearchStrategy {
 
     @Override
-    public void processQuery(Node currentNode, Message message, SimulationManager simulationManager) {
+    public void processQuery(Node currentNode, Message message, SimulationManager simulationManager, String senderId) {
         if (message.getTtl() <= 0) {
             return;
         }
@@ -39,9 +37,9 @@ public class InformedRandomWalkStrategy implements SearchStrategy {
         }
 
         List<String> candidates = new ArrayList<>(currentNode.getNeighbors());
-        String previousHop = getPreviousHop(message);
-        if (previousHop != null && candidates.size() > 1) {
-            candidates.remove(previousHop);
+        
+        if (senderId != null) {
+            candidates.remove(senderId);
         }
 
         if (candidates.isEmpty()) {
@@ -77,14 +75,6 @@ public class InformedRandomWalkStrategy implements SearchStrategy {
             .build();
         simulationManager.sendMessage(directMessage, currentNode.getId());
         return true;
-    }
-
-    private String getPreviousHop(Message message) {
-        List<String> path = message.getPathHistory();
-        if (path.size() < 2) {
-            return null;
-        }
-        return path.get(path.size() - 2);
     }
 
     @Override

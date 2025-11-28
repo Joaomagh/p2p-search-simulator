@@ -12,10 +12,7 @@ import p2p.search.simulator.visualization.NetworkVisualizer;
 
 import java.util.*;
 
-/**
- * Representa a topologia da rede P2P usando JGraphT.
- * ResponsÃ¡vel por construir o grafo e validar as regras crÃ­ticas da rede.
- */
+
 public class NetworkTopology {
     
     private final Graph<String, DefaultEdge> graph;
@@ -24,7 +21,7 @@ public class NetworkTopology {
     private final int maxNeighbors;
     
     /**
-     * ConstrÃ³i a topologia da rede a partir da configuraÃ§Ã£o.
+     * Constrói a topologia da rede a partir da configuração.
      * 
      * @param config configuraÃ§Ã£o da rede carregada do JSON
      */
@@ -38,11 +35,7 @@ public class NetworkTopology {
         validate();
     }
     
-    /**
-     * ConstrÃ³i o grafo e os nÃ³s a partir da configuraÃ§Ã£o.
-     */
     private void buildTopology(NetworkConfig config) {
-        // 1. Criar nÃ³s e adicionar ao grafo
         for (Map.Entry<String, List<String>> entry : config.getResources().entrySet()) {
             String nodeId = entry.getKey();
             List<String> resources = entry.getValue();
@@ -52,7 +45,6 @@ public class NetworkTopology {
             graph.addVertex(nodeId);
         }
         
-        // 2. Criar arestas
         for (List<String> edge : config.getEdges()) {
             if (edge.size() != 2) {
                 throw new IllegalArgumentException("Invalid edge format: " + edge);
@@ -61,30 +53,27 @@ public class NetworkTopology {
             String node1 = edge.get(0);
             String node2 = edge.get(1);
             
-            // Verifica se os nÃ³s existem
             if (!nodes.containsKey(node1) || !nodes.containsKey(node2)) {
                 throw new IllegalArgumentException(
                     String.format("Edge references non-existent node: [%s, %s]", node1, node2)
                 );
             }
             
-            // Adiciona aresta ao grafo (JGraphT impede duplicatas automaticamente)
             graph.addEdge(node1, node2);
             
-            // Atualiza vizinhos nos nÃ³s
             nodes.get(node1).addNeighbor(node2);
             nodes.get(node2).addNeighbor(node1);
         }
     }
     
     /**
-     * Valida as 4 regras crÃ­ticas da topologia:
+     * Valida as 4 regras críticas da topologia:
      * 1. Conectividade - grafo deve ser conexo
-     * 2. Grau - todos os nÃ³s devem respeitar min/max neighbors
-     * 3. Recursos - todos os nÃ³s devem ter pelo menos um recurso
-     * 4. Self-loops - nÃ£o pode haver arestas de um nÃ³ para ele mesmo
+     * 2. Grau - todos os não devem respeitar min/max neighbors
+     * 3. Recursos - todos os não devem ter pelo menos um recurso
+     * 4. Self-loops - não pode haver arestas de um não para ele mesmo
      * 
-     * @throws IllegalStateException se alguma validaÃ§Ã£o falhar
+     * @throws IllegalStateException se alguma validação falhar
      */
     public void validate() {
         validateConnectivity();
@@ -93,10 +82,6 @@ public class NetworkTopology {
         validateSelfLoops();
     }
     
-    /**
-     * REGRA 1: Valida que o grafo Ã© conexo (todos os nÃ³s sÃ£o alcanÃ§Ã¡veis).
-     * Usa ConnectivityInspector do JGraphT.
-     */
     private void validateConnectivity() {
         ConnectivityInspector<String, DefaultEdge> inspector = 
             new ConnectivityInspector<>(graph);
@@ -112,10 +97,6 @@ public class NetworkTopology {
         }
     }
     
-    /**
-     * REGRA 2: Valida que todos os nÃ³s respeitam os limites de grau.
-     * Nenhum nÃ³ pode ter neighbors < min ou > max.
-     */
     private void validateDegree() {
         for (Node node : nodes.values()) {
             int degree = node.getDegree();
@@ -140,9 +121,6 @@ public class NetworkTopology {
         }
     }
     
-    /**
-     * REGRA 3: Valida que todos os nÃ³s tÃªm lista de recursos nÃ£o-vazia.
-     */
     private void validateResources() {
         for (Node node : nodes.values()) {
             if (node.getResources().isEmpty()) {
@@ -156,9 +134,6 @@ public class NetworkTopology {
         }
     }
     
-    /**
-     * REGRA 4: Valida que nÃ£o existem self-loops (aresta de um nÃ³ para ele mesmo).
-     */
     private void validateSelfLoops() {
         for (String nodeId : graph.vertexSet()) {
             if (graph.containsEdge(nodeId, nodeId)) {
@@ -172,46 +147,26 @@ public class NetworkTopology {
         }
     }
     
-    // Getters
-    
-    /**
-     * Retorna o grafo JGraphT.
-     */
     public Graph<String, DefaultEdge> getGraph() {
         return graph;
     }
     
-    /**
-     * Retorna um nÃ³ pelo ID.
-     */
     public Optional<Node> getNode(String nodeId) {
         return Optional.ofNullable(nodes.get(nodeId));
     }
     
-    /**
-     * Retorna todos os nÃ³s da rede.
-     */
     public Collection<Node> getAllNodes() {
         return Collections.unmodifiableCollection(nodes.values());
     }
     
-    /**
-     * Retorna todos os IDs dos nÃ³s.
-     */
     public Set<String> getNodeIds() {
         return Collections.unmodifiableSet(nodes.keySet());
     }
     
-    /**
-     * Retorna o nÃºmero de nÃ³s na rede.
-     */
     public int getNodeCount() {
         return nodes.size();
     }
     
-    /**
-     * Retorna o nÃºmero de arestas na rede.
-     */
     public int getEdgeCount() {
         return graph.edgeSet().size();
     }
@@ -224,16 +179,10 @@ public class NetworkTopology {
         return maxNeighbors;
     }
 
-    /**
-     * Exibe a topologia usando o visualizador acadêmico.
-     */
     public NetworkVisualizer show() {
         return new NetworkVisualizer(this);
     }
 
-    /**
-     * Retorna o caminho mais curto entre dois nós como lista de IDs.
-     */
     public List<String> shortestPath(String source, String target) {
         if (!graph.containsVertex(source) || !graph.containsVertex(target)) {
             return Collections.emptyList();

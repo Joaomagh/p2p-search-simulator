@@ -7,9 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * ResponsÃ¡vel por carregar a configuraÃ§Ã£o da rede a partir de um arquivo JSON.
- */
+
 public class NetworkLoader {
     
     private final ObjectMapper objectMapper;
@@ -31,8 +29,8 @@ public class NetworkLoader {
     }
     
     /**
-     * Carrega a configuraÃ§Ã£o da rede a partir de um recurso no classpath.
-     * Ãštil para carregar arquivos de src/main/resources.
+     * Carrega a configuração da rede a partir de um recurso no classpath.
+     * Útil para carregar arquivos de src/main/resources.
      * 
      * @param resourcePath caminho do recurso (ex: "config.json")
      * @return objeto NetworkConfig com os dados carregados
@@ -49,9 +47,9 @@ public class NetworkLoader {
     }
     
     /**
-     * Carrega a configuraÃ§Ã£o da rede a partir de uma string JSON.
+     * Carrega a configuração da rede a partir de uma string JSON.
      * 
-     * @param jsonContent conteÃºdo JSON como string
+     * @param jsonContent conteúdo JSON como string
      * @return objeto NetworkConfig com os dados carregados
      * @throws IOException se houver erro no parsing do JSON
      */

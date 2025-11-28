@@ -171,9 +171,6 @@ public class Main {
         return createStrategy(choice);
     }
 
-    /**
-     * Cria a estratégia baseada na escolha.
-     */
     private static SearchStrategy createStrategy(String choice) {
         switch (choice.toLowerCase()) {
             case "1":
@@ -196,9 +193,6 @@ public class Main {
         }
     }
 
-    /**
-     * Pergunta se deseja modo de visualização.
-     */
     private static boolean chooseVisualizationMode(String[] args, Scanner scanner) {
         if (args.length > 2) {
             return args[2].equalsIgnoreCase("visual") || args[2].equalsIgnoreCase("true");
@@ -210,9 +204,6 @@ public class Main {
         return response.equals("s") || response.equals("sim") || response.equals("y") || response.equals("yes");
     }
 
-    /**
-     * Imprime as estatísticas da busca.
-     */
     private static void printStatistics(SimulationManager.SearchResult result, int totalNodes) {
         System.out.println("\n==============================================");
         System.out.println("   ESTATÍSTICAS DA BUSCA");
@@ -222,8 +213,10 @@ public class Main {
         System.out.println("Origem: " + result.getSourceNode());
         System.out.println("----------------------------------------------");
         System.out.println("Total de Mensagens: " + result.getTotalMessages());
+        System.out.println("Total de Nós Visitados: " + result.getVisitedNodes());
         System.out.println("Número de Hops: " + result.getHops());
         System.out.println("Mensagens/Nó: " + String.format("%.2f", (double) result.getTotalMessages() / totalNodes));
+        System.out.println("Cobertura da Rede: " + String.format("%.1f%%", (double) result.getVisitedNodes() * 100 / totalNodes));
         System.out.println("Tempo de Execução: " + result.getDurationMs() + " ms");
         if (!result.getPath().isEmpty()) {
             System.out.println("Caminho: " + String.join(" → ", result.getPath()));

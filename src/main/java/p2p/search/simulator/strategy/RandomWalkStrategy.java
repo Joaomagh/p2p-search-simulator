@@ -8,13 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Implementa o algoritmo Random Walk: encaminha a mensagem para apenas um vizinho aleatório.
- */
 public class RandomWalkStrategy implements SearchStrategy {
 
 	@Override
-	public void processQuery(Node currentNode, Message message, SimulationManager simulationManager) {
+	public void processQuery(Node currentNode, Message message, SimulationManager simulationManager, String senderId) {
 		if (message.getTtl() <= 0) {
 			return;
 		}
@@ -34,9 +31,9 @@ public class RandomWalkStrategy implements SearchStrategy {
 		}
 
 		List<String> candidates = new ArrayList<>(currentNode.getNeighbors());
-		String previousHop = getPreviousHop(message);
-		if (previousHop != null && candidates.size() > 1) {
-			candidates.remove(previousHop);
+		
+		if (senderId != null) {
+			candidates.remove(senderId);
 		}
 
 		if (candidates.isEmpty()) {
@@ -48,14 +45,6 @@ public class RandomWalkStrategy implements SearchStrategy {
 			.target(nextHop)
 			.build();
 		simulationManager.sendMessage(neighborMessage, currentNode.getId());
-	}
-
-	private String getPreviousHop(Message message) {
-		List<String> path = message.getPathHistory();
-		if (path.size() < 2) {
-			return null;
-		}
-		return path.get(path.size() - 2);
 	}
 
 	@Override

@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 
-/**
- * POJO para representar a configuraÃ§Ã£o da rede carregada do JSON.
- */
 public class NetworkConfig {
     
     @JsonProperty("num_nodes")
@@ -24,10 +21,8 @@ public class NetworkConfig {
     @JsonProperty("edges")
     private List<List<String>> edges;
     
-    // Construtor padrÃ£o (necessÃ¡rio para Jackson)
     public NetworkConfig() {}
     
-    // Getters e Setters
     public int getNumNodes() {
         return numNodes;
     }

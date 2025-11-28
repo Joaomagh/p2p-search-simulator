@@ -114,6 +114,21 @@ class SimulationTest {
             .build();
 
         assertThrows(IllegalStateException.class,
-            () -> node.receiveMessage(query, simulationManager));
+            () -> node.receiveMessage(query, simulationManager, null));
+    }
+
+    @Test
+    void testCachesUpdatedViaResponseFlow() {
+        SimulationManager.SearchResult result =
+            simulationManager.runSearch("n1", "fileR", 10, floodingStrategy);
+
+        assertTrue(result.isSuccess());
+        assertTrue(result.getPath().size() >= 2, "Path should contain at least origin and destination");
+
+        for (String nodeId : result.getPath()) {
+            Node node = topology.getNode(nodeId).orElseThrow();
+            assertEquals("n12", node.getCachedLocation("fileR").orElse(null),
+                "Node " + nodeId + " should have cached n12 as location of fileR");
+        }
     }
 }

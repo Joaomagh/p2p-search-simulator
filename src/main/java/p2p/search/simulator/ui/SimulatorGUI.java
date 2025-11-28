@@ -391,9 +391,12 @@ public class SimulatorGUI extends JFrame {
         logArea.append("Origem: " + result.getSourceNode() + "\n");
         logArea.append("----------------------------------------------\n");
         logArea.append("Total de Mensagens: " + result.getTotalMessages() + "\n");
+        logArea.append("Total de Nos Visitados: " + result.getVisitedNodes() + "\n");
         logArea.append("Numero de Hops: " + result.getHops() + "\n");
         logArea.append("Mensagens/No: " + String.format("%.2f",
             (double) result.getTotalMessages() / topology.getNodeCount()) + "\n");
+        logArea.append("Cobertura da Rede: " + String.format("%.1f%%",
+            (double) result.getVisitedNodes() * 100 / topology.getNodeCount()) + "\n");
         logArea.append("Tempo de Execucao: " + result.getDurationMs() + " ms\n");
         if (!result.getPath().isEmpty()) {
             logArea.append("Caminho: " + String.join(" → ", result.getPath()) + "\n");
@@ -412,12 +415,19 @@ public class SimulatorGUI extends JFrame {
         statsPanel.add(new JLabel("Total de Mensagens:"));
         statsPanel.add(new JLabel(String.valueOf(result.getTotalMessages())));
 
+        statsPanel.add(new JLabel("Total de Nos Visitados:"));
+        statsPanel.add(new JLabel(String.valueOf(result.getVisitedNodes())));
+
         statsPanel.add(new JLabel("Numero de Hops:"));
         statsPanel.add(new JLabel(String.valueOf(result.getHops())));
 
         statsPanel.add(new JLabel("Mensagens/No:"));
         statsPanel.add(new JLabel(String.format("%.2f",
             (double) result.getTotalMessages() / topology.getNodeCount())));
+
+        statsPanel.add(new JLabel("Cobertura da Rede:"));
+        statsPanel.add(new JLabel(String.format("%.1f%%",
+            (double) result.getVisitedNodes() * 100 / topology.getNodeCount())));
 
         statsPanel.add(new JLabel("Tempo de Execucao:"));
         statsPanel.add(new JLabel(result.getDurationMs() + " ms"));

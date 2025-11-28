@@ -6,13 +6,10 @@ import p2p.search.simulator.simulation.SimulationManager;
 
 import java.util.Optional;
 
-/**
- * Estratégia Flooding com cache informado: consulta o cache antes de inundar a rede.
- */
 public class InformedFloodingStrategy implements SearchStrategy {
 
     @Override
-    public void processQuery(Node currentNode, Message message, SimulationManager simulationManager) {
+    public void processQuery(Node currentNode, Message message, SimulationManager simulationManager, String senderId) {
         if (message.getTtl() <= 0) {
             return;
         }
@@ -36,6 +33,9 @@ public class InformedFloodingStrategy implements SearchStrategy {
         }
 
         for (String neighborId : currentNode.getNeighbors()) {
+            if (neighborId.equals(senderId)) {
+                continue;
+            }
             Message neighborMessage = forwardMessage.toBuilder()
                 .target(neighborId)
                 .build();
