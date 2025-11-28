@@ -88,6 +88,9 @@ java -jar target/p2p-simulator.jar [config_path] [algorithm] [visualization]
 - **`run.bat`**: Script principal (compila e executa com Java 21)
 - **`run-auto.bat`**: Detecta automaticamente o Java 17+ instalado
 - **`run-quick.bat`**: Execução rápida (assume que já está compilado)
+- **`run-gui.bat`** / **`run.sh`**: atalhos para abrir diretamente a interface gráfica
+
+> **Importante:** todos os scripts chamam o `target/p2p-simulator.jar` recém-gerado pelo Maven. Execute `mvn clean package` (ou `mvn clean package -DskipTests` se preferir) antes de usá-los, caso contrário o jar anterior pode não existir ou estar desatualizado.
 
 ## Configuração da Rede
 

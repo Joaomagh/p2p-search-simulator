@@ -3,6 +3,17 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Build artifacts created by maven-shade
+dependency-reduced-pom.xml
+
+# IDE/state folders
+.idea/
+
+# Logs and JVM crash dumps
+*.log
+hs_err_pid*
+jvm_crash_pid*
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
