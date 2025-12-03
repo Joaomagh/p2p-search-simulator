@@ -286,16 +286,16 @@ Executado na rede: 12 nós, 14 arestas, TTL=10
 | **2ª busca (cache)** | **Informed Flooding** | **6** | **2** | **3** | **16%** | ✅ **100%** |
 | **2ª busca (cache)** | **Informed Random** | **6** | **2** | **3** | **16%** | ✅ **100%** |
 
-### 2\. Análise Gráfica (Resultados Experimentais)
+### 2/. Análise Gráfica (Resultados Experimentais)
 
 *Abaixo, gráficos gerados a partir da média de 20 execuções, demonstrando os trade-offs entre custo e confiabilidade.*
 
 #### Eficiência (Menos mensagens = Melhor)
-
-> O **Informed Flooding** (com cache) reduz drasticamente o tráfego de rede, enquanto o **Random Walk** oferece uma economia moderada (\~30%) em relação ao Flooding puro.
+![Gráfico de Eficiência](Mensagens%20Gastas%20(Média)%20versus%20Estratégia.png)
+> O **Informed Flooding** (com cache) reduz drasticamente o tráfego de rede, enquanto o **Random Walk** oferece uma economia moderada (~30%) em relação ao Flooding puro.
 
 #### Confiabilidade (Taxa de Sucesso)
-
+![Gráfico de Sucesso](Taxa%20de%20Sucesso%20(%25)%20versus%20Estratégia%20(1).png)
 > Estratégias determinísticas (Flooding) garantem entrega. Estratégias aleatórias sacrificam a garantia em troca de menor uso de recursos.
 
 -----
