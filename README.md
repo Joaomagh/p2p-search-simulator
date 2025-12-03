@@ -22,7 +22,7 @@ java -jar target/p2p-simulator.jar
 
 # Rodar todos os 98 testes
 mvn test
-```
+````
 
 **Requisitos**: Java 17+ ([Download](https://adoptium.net/))
 
@@ -31,11 +31,12 @@ mvn test
 Este simulador implementa e compara 4 estratégias de busca P2P em uma rede de 12 nós com métricas reais de performance:
 
 ### Topologia da Rede (config.json)
-- **12 nós** (n1-n12)
-- **14 arestas** (conexões)
-- **2-4 vizinhos** por nó
-- **19 recursos** distribuídos (fileA-fileR)
-- Validado: conectado, sem self-loops, restrições de grau
+
+  - **12 nós** (n1-n12)
+  - **14 arestas** (conexões)
+  - **2-4 vizinhos** por nó
+  - **19 recursos** distribuídos (fileA-fileR)
+  - Validado: conectado, sem self-loops, restrições de grau
 
 ### Estratégias Implementadas
 
@@ -43,8 +44,8 @@ Este simulador implementa e compara 4 estratégias de busca P2P em uma rede de 1
 |------------|------------|--------------|----------------|------------|
 | **Flooding** | 18-22 | 100% ✅ | 100% (12 nós) | Buscas críticas |
 | **Random Walk** | 8-15 | 40-60% ⚠️ | 30-50% (4-6 nós) | Recursos limitados |
-| **Informed Flooding** | 18→**2*** | 100% ✅ | 100%→16% | Recursos populares |
-| **Informed Random Walk** | 10→**2*** | 50-70% | 40%→16% | Equilíbrio eficiente |
+| **Informed Flooding** | 18→**2**\* | 100% ✅ | 100%→16% | Recursos populares |
+| **Informed Random Walk** | 10→**2**\* | 50-70% | 40%→16% | Equilíbrio eficiente |
 
 \* **Cache hit**: Roteamento direto, redução de 90-95% nas mensagens
 
@@ -55,6 +56,7 @@ Baseado em 50+ execuções de testes (veja suite de testes):
 ### Exemplo: Busca por "fileR" (n5 → n2)
 
 **Sem Cache (Primeira Busca)**:
+
 ```
 Estratégia: Flooding
 Mensagens: 20
@@ -66,6 +68,7 @@ Caminho: n5 → n2 → n6 → n12 (encontrado)
 ```
 
 **Com Cache Hit (Segunda Busca)**:
+
 ```
 Estratégia: Informed Flooding
 Mensagens: 6
@@ -79,10 +82,10 @@ Resultado: 70% de redução em mensagens, 85% de redução em cobertura
 
 ### Principais Descobertas
 
-1. **Eficiência do Cache**: Redução de 90-95% nas mensagens em buscas repetidas
-2. **Cobertura vs Sucesso**: Flooding visita 100% mas estratégias informadas visitam <20% com mesmo sucesso
-3. **Trade-off Random Walk**: 60% menos mensagens mas natureza estocástica limita sucesso a 40-60%
-4. **Impacto do Anti-Echo**: Reduz mensagens redundantes em ~20% em todas as estratégias
+1.  **Eficiência do Cache**: Redução de 90-95% nas mensagens em buscas repetidas
+2.  **Cobertura vs Sucesso**: Flooding visita 100% mas estratégias informadas visitam \<20% com mesmo sucesso
+3.  **Trade-off Random Walk**: 60% menos mensagens mas natureza estocástica limita sucesso a 40-60%
+4.  **Impacto do Anti-Echo**: Reduz mensagens redundantes em \~20% em todas as estratégias
 
 ## Arquitetura
 
@@ -119,18 +122,21 @@ src/test/java/ (98 testes, 100% pass rate)
 
 ## Mecanismos Principais
 
-### 1. TTL (Time-To-Live)
+### 1\. TTL (Time-To-Live)
+
 ```java
 // Message.java
 public Message decrementTTL() {
     return toBuilder().ttl(this.ttl - 1).build();
 }
 ```
-- Previne loops infinitos
-- Configurável por busca (padrão: 10)
-- Mensagem descartada quando TTL ≤ 0
 
-### 2. Anti-Echo (Prevenção de Duplicatas)
+  - Previne loops infinitos
+  - Configurável por busca (padrão: 10)
+  - Mensagem descartada quando TTL ≤ 0
+
+### 2\. Anti-Echo (Prevenção de Duplicatas)
+
 ```java
 // Proteção em duas camadas:
 // 1. Nível de estratégia: Não reenvia para o sender
@@ -141,26 +147,30 @@ String key = messageId + ":" + nodeId;
 if (!seenMessages.add(key)) return; // Já processado
 ```
 
-### 3. Propagação de Cache
+### 3\. Propagação de Cache
+
 ```java
 // Node.java - RESPONSE atualiza cache no caminho reverso
 if (message.getType() == RESPONSE && message.isSuccess()) {
     addToCache(message.getResource(), message.getSource());
 }
 ```
-- Cache populado no RESPONSE, não no QUERY
-- Todos os nós no caminho aprendem localização do recurso
-- Ganho de 90-95% de eficiência em buscas subsequentes
 
-### 4. Strategy Pattern
+  - Cache populado no RESPONSE, não no QUERY
+  - Todos os nós no caminho aprendem localização do recurso
+  - Ganho de 90-95% de eficiência em buscas subsequentes
+
+### 4\. Strategy Pattern
+
 ```java
 // SearchStrategy.java
 void processQuery(Node node, Message msg, SimulationManager sim, String sender);
 boolean isInformed(); // Estratégias cache-aware retornam true
 ```
-- Troca de estratégia em runtime
-- Lógica de algoritmo isolada
-- Fácil adicionar novas estratégias
+
+  - Troca de estratégia em runtime
+  - Lógica de algoritmo isolada
+  - Fácil adicionar novas estratégias
 
 ## Configuração
 
@@ -184,20 +194,23 @@ Edite `src/main/resources/config.json`:
 ```
 
 **Validação Automática**:
-- ✅ Conectividade do grafo (sem subgrafos isolados)
-- ✅ Limites de grau (2 ≤ grau ≤ 4)
-- ✅ Presença de recursos (todo nó tem ≥1 arquivo)
-- ✅ Detecção de self-loop (rejeitados)
+
+  - ✅ Conectividade do grafo (sem subgrafos isolados)
+  - ✅ Limites de grau (2 ≤ grau ≤ 4)
+  - ✅ Presença de recursos (todo nó tem ≥1 arquivo)
+  - ✅ Detecção de self-loop (rejeitados)
 
 ## Recursos da GUI
 
 ### Controles
-- **Seletor de Estratégia**: Troca algoritmo em runtime
-- **Slider de Velocidade**: 0ms (instantâneo) a 2000ms (câmera lenta)
-- **Botão Replay**: Re-executa última busca com mesmos parâmetros
-- **Source/Resource/TTL**: Parâmetros configuráveis de busca
+
+  - **Seletor de Estratégia**: Troca algoritmo em runtime
+  - **Slider de Velocidade**: 0ms (instantâneo) a 2000ms (câmera lenta)
+  - **Botão Replay**: Re-executa última busca com mesmos parâmetros
+  - **Source/Resource/TTL**: Parâmetros configuráveis de busca
 
 ### Métricas em Tempo Real
+
 ```
 Status: SUCESSO / FALHOU
 Total de Mensagens: 6
@@ -210,11 +223,12 @@ Caminho: n5 → n5 → n5 → n2
 ```
 
 ### Estados Visuais
-- 🔵 **Azul**: Nó de origem
-- 🟠 **Laranja**: Processando mensagem
-- 🟢 **Verde**: Recurso encontrado (sucesso)
-- 🔴 **Vermelho**: Aresta ativa (mensagem em trânsito)
-- ⚪ **Cinza**: Nó ocioso
+
+  - 🔵 **Azul**: Nó de origem
+  - 🟠 **Laranja**: Processando mensagem
+  - 🟢 **Verde**: Recurso encontrado (sucesso)
+  - 🔴 **Vermelho**: Aresta ativa (mensagem em trânsito)
+  - ⚪ **Cinza**: Nó ocioso
 
 ## Testes
 
@@ -232,31 +246,37 @@ mvn -Dtest=TopologyTest test
 ### Cobertura de Testes (98 testes, 100% pass)
 
 **Testes de Estratégia** (20 testes):
-- Flooding: Sucesso garantido, explosão de mensagens
-- Random Walk: Sucesso estocástico (40-60%), 50 execuções validadas
-- Informed Flooding: Cache hit reduz 90% das mensagens
-- Informed Random Walk: Combina eficiência + conhecimento
+
+  - Flooding: Sucesso garantido, explosão de mensagens
+  - Random Walk: Sucesso estocástico (40-60%), 50 execuções validadas
+  - Informed Flooding: Cache hit reduz 90% das mensagens
+  - Informed Random Walk: Combina eficiência + conhecimento
 
 **Testes de Comportamento** (30 testes):
-- TTL: Expiração em 0, decrementa corretamente
-- Cache: Populado no RESPONSE, não no QUERY
-- Anti-Echo: Deduplicação de mensagens, exclusão do sender
-- Métricas: Consistência (visitedNodes ≤ totalNodes)
+
+  - TTL: Expiração em 0, decrementa corretamente
+  - Cache: Populado no RESPONSE, não no QUERY
+  - Anti-Echo: Deduplicação de mensagens, exclusão do sender
+  - Métricas: Consistência (visitedNodes ≤ totalNodes)
 
 **Testes de Topologia** (12 testes):
-- Validação de conectividade (ConnectivityInspector)
-- Validação de grau (min ≤ grau ≤ max)
-- Validação de recursos (recursos não-vazios)
-- Rejeição de self-loop
+
+  - Validação de conectividade (ConnectivityInspector)
+  - Validação de grau (min ≤ grau ≤ max)
+  - Validação de recursos (recursos não-vazios)
+  - Rejeição de self-loop
 
 **Testes de Integração** (36 testes):
-- Fluxos de busca end-to-end
-- Caminhos de propagação de cache
-- Benchmarks de comparação de estratégias
+
+  - Fluxos de busca end-to-end
+  - Caminhos de propagação de cache
+  - Benchmarks de comparação de estratégias
 
 ## Benchmarks de Performance
 
 Executado na rede: 12 nós, 14 arestas, TTL=10
+
+### 1\. Tabela Comparativa
 
 | Cenário | Estratégia | Mensagens | Visitados | Hops | Cobertura | Sucesso |
 |---------|------------|-----------|-----------|------|-----------|---------|
@@ -266,19 +286,35 @@ Executado na rede: 12 nós, 14 arestas, TTL=10
 | **2ª busca (cache)** | **Informed Flooding** | **6** | **2** | **3** | **16%** | ✅ **100%** |
 | **2ª busca (cache)** | **Informed Random** | **6** | **2** | **3** | **16%** | ✅ **100%** |
 
+### 2\. Análise Gráfica (Resultados Experimentais)
+
+*Abaixo, gráficos gerados a partir da média de 20 execuções, demonstrando os trade-offs entre custo e confiabilidade.*
+
+#### Eficiência (Menos mensagens = Melhor)
+
+> O **Informed Flooding** (com cache) reduz drasticamente o tráfego de rede, enquanto o **Random Walk** oferece uma economia moderada (\~30%) em relação ao Flooding puro.
+
+#### Confiabilidade (Taxa de Sucesso)
+
+> Estratégias determinísticas (Flooding) garantem entrega. Estratégias aleatórias sacrificam a garantia em troca de menor uso de recursos.
+
+-----
+
 **Análise**:
-- Estratégias informadas: **Redução de 70-90%** nas mensagens (cache hit)
-- Flooding: **Sucesso de 100%** mas caro (20 msgs)
-- Random Walk: **Economia de 60%** mas sucesso probabilístico
-- Cache: Transforma buscas caras em **roteamento direto**
+
+  - Estratégias informadas: **Redução de 70-90%** nas mensagens (cache hit)
+  - Flooding: **Sucesso de 100%** mas caro (20 msgs)
+  - Random Walk: **Economia de 60%** mas sucesso probabilístico
+  - Cache: Transforma buscas caras em **roteamento direto**
 
 ## Documentação
 
-- **[GUIA_DE_USO.md](GUIA_DE_USO.md)** - Manual completo do usuário
+  - **[GUIA\_DE\_USO.md](https://www.google.com/search?q=GUIA_DE_USO.md)** - Manual completo do usuário
 
 ## Troubleshooting
 
 **Erro: `UnsupportedClassVersionError`**
+
 ```bash
 # Causa: Java < 17
 # Fix: Instalar Java 17+ e verificar
@@ -286,6 +322,7 @@ java -version  # Deve mostrar 17.x ou superior
 ```
 
 **Erro: `NetworkConfig not found`**
+
 ```bash
 # Causa: config.json ausente
 # Fix: Garantir que arquivo existe
@@ -293,6 +330,7 @@ ls src/main/resources/config.json
 ```
 
 **Testes falham com "Graph not connected"**
+
 ```bash
 # Causa: Topologia inválida no config.json
 # Fix: Garantir que todos os nós são alcançáveis
@@ -300,6 +338,7 @@ ls src/main/resources/config.json
 ```
 
 **GUI não abre**
+
 ```bash
 # Causa: GraphStream/Swing indisponível
 # Fix: Verificar logs, tentar modo headless
@@ -316,30 +355,30 @@ java -Djava.awt.headless=true -jar target/p2p-simulator.jar
 ✅ **TTL + Anti-Echo** (prevenção de loops)  
 ✅ **Cache via RESPONSE** (conhecimento distribuído)  
 ✅ **98 Testes Automatizados** (100% pass rate)  
-✅ **Coleta de Métricas** (mensagens, hops, cobertura, tempo)  
+✅ **Coleta de Métricas** (mensagens, hops, cobertura, tempo)
 
 ## Principais Contribuições
 
-1. **Estratégias Cache-Aware**: Comparação inédita de algoritmos informados vs não-informados
-2. **Anti-Echo Dual**: Prevenção de duplicatas em nível de estratégia + simulação
-3. **Visualização em Tempo Real**: Integração GraphStream estilo acadêmico com métricas
-4. **Testes Abrangentes**: 98 testes cobrindo corretude, performance, casos extremos
-5. **Validação Estatística**: Testes de 50 execuções para Random Walk estocástico
+1.  **Estratégias Cache-Aware**: Comparação inédita de algoritmos informados vs não-informados
+2.  **Anti-Echo Dual**: Prevenção de duplicatas em nível de estratégia + simulação
+3.  **Visualização em Tempo Real**: Integração GraphStream estilo acadêmico com métricas
+4.  **Testes Abrangentes**: 98 testes cobrindo corretude, performance, casos extremos
+5.  **Validação Estatística**: Testes de 50 execuções para Random Walk estocástico
 
 ## Trabalhos Futuros
 
-- [ ] Topologia dinâmica (nós entrando/saindo)
-- [ ] Invalidação de cache (baseada em TTL)
-- [ ] Buscas paralelas (multi-threaded)
-- [ ] Estratégias adicionais (Expanding Ring, k-Random Walk)
-- [ ] Simulação de churn de rede
-- [ ] Análise comparativa com protocolos P2P reais (Gnutella, Chord)
+  - [ ] Topologia dinâmica (nós entrando/saindo)
+  - [ ] Invalidação de cache (baseada em TTL)
+  - [ ] Buscas paralelas (multi-threaded)
+  - [ ] Estratégias adicionais (Expanding Ring, k-Random Walk)
+  - [ ] Simulação de churn de rede
+  - [ ] Análise comparativa com protocolos P2P reais (Gnutella, Chord)
 
 ## Autores
+
 João Pedro Rego Magalhães
 
-Desenvolvido para a disciplina de **Sistemas Distribuídos**  
-
----
+-----
 
 **TL;DR**: Simulador P2P acadêmico com 4 algoritmos de busca, eficiência de cache de 90-95%, topologia validada de 12 nós, GUI em tempo real e 98 testes demonstrando trade-offs de busca distribuída.
+
