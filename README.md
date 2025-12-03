@@ -275,8 +275,6 @@ Executado na rede: 12 nós, 14 arestas, TTL=10
 ## Documentação
 
 - **[GUIA_DE_USO.md](GUIA_DE_USO.md)** - Manual completo do usuário
-- **[GUIA_ACADEMICO.md](GUIA_ACADEMICO.md)** - Guia de defesa acadêmica
-- **[PERGUNTAS_PROFESSOR.md](PERGUNTAS_PROFESSOR.md)** - Perguntas esperadas + respostas
 
 ## Troubleshooting
 
@@ -337,14 +335,10 @@ java -Djava.awt.headless=true -jar target/p2p-simulator.jar
 - [ ] Simulação de churn de rede
 - [ ] Análise comparativa com protocolos P2P reais (Gnutella, Chord)
 
-## Licença
-
-MIT License
-
 ## Autores
+João Pedro Rego Magalhães
 
 Desenvolvido para a disciplina de **Sistemas Distribuídos**  
-Universidade Federal do Ceará (UFC) - 2025
 
 ---
 
