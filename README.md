@@ -365,18 +365,10 @@ java -Djava.awt.headless=true -jar target/p2p-simulator.jar
 4.  **Testes Abrangentes**: 98 testes cobrindo corretude, performance, casos extremos
 5.  **Validação Estatística**: Testes de 50 execuções para Random Walk estocástico
 
-## Trabalhos Futuros
-
-  - [ ] Topologia dinâmica (nós entrando/saindo)
-  - [ ] Invalidação de cache (baseada em TTL)
-  - [ ] Buscas paralelas (multi-threaded)
-  - [ ] Estratégias adicionais (Expanding Ring, k-Random Walk)
-  - [ ] Simulação de churn de rede
-  - [ ] Análise comparativa com protocolos P2P reais (Gnutella, Chord)
 
 ## Autores
 
-João Pedro Rego Magalhães
+João Pedro Rego Magalhães, João Pedro Monteiro, José Ricardo 
 
 -----
 
