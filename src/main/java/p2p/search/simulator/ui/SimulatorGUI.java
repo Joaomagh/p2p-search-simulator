@@ -243,7 +243,7 @@ public class SimulatorGUI extends JFrame {
                 NetworkConfig config;
                 
                 try {
-                    if (configPath.equals("config.json")) {
+                    if (configPath.equals("config1.json")) {
                         config = loader.loadFromResource(configPath);
                     } else {
                         config = loader.loadFromFile(configPath);
