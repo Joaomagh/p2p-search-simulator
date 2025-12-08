@@ -307,10 +307,6 @@ Executado na rede: 12 nós, 14 arestas, TTL=10
   - Random Walk: **Economia de 60%** mas sucesso probabilístico
   - Cache: Transforma buscas caras em **roteamento direto**
 
-## Documentação
-
-  - **[GUIA\_DE\_USO.md](https://www.google.com/search?q=GUIA_DE_USO.md)** - Manual completo do usuário
-
 ## Troubleshooting
 
 **Erro: `UnsupportedClassVersionError`**
