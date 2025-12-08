@@ -17,9 +17,11 @@ public class Message {
     private final int ttl;
     private final List<String> pathHistory;
     private final boolean success;
+    private final Map<String, Set<String>> triedNeighbors;
     
     private Message(String id, Type type, String source, String target, 
-                   String resource, int ttl, List<String> pathHistory, boolean success) {
+                   String resource, int ttl, List<String> pathHistory, boolean success,
+                   Map<String, Set<String>> triedNeighbors) {
         this.id = id;
         this.type = type;
         this.source = source;
@@ -28,6 +30,10 @@ public class Message {
         this.ttl = ttl;
         this.pathHistory = new ArrayList<>(pathHistory);
         this.success = success;
+        this.triedNeighbors = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : triedNeighbors.entrySet()) {
+            this.triedNeighbors.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
     }
     
     public Message decrementTTL() {
@@ -40,6 +46,7 @@ public class Message {
             .ttl(this.ttl - 1)
             .pathHistory(this.pathHistory)
             .success(this.success)
+            .triedNeighbors(this.triedNeighbors)
             .build();
     }
     
@@ -56,6 +63,7 @@ public class Message {
             .ttl(this.ttl)
             .pathHistory(newPath)
             .success(this.success)
+            .triedNeighbors(this.triedNeighbors)
             .build();
     }
     
@@ -72,6 +80,7 @@ public class Message {
             .ttl(reversePath.size())
             .pathHistory(reversePath)
             .success(success)
+            .triedNeighbors(this.triedNeighbors)
             .build();
     }
     
@@ -84,7 +93,8 @@ public class Message {
             .resource(this.resource)
             .ttl(this.ttl)
             .pathHistory(this.pathHistory)
-            .success(this.success);
+            .success(this.success)
+            .triedNeighbors(this.triedNeighbors);
     }
     
     public String getId() {
@@ -123,6 +133,35 @@ public class Message {
         return pathHistory.size();
     }
     
+    public Map<String, Set<String>> getTriedNeighbors() {
+        Map<String, Set<String>> copy = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : triedNeighbors.entrySet()) {
+            copy.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        }
+        return copy;
+    }
+    
+    public Set<String> getTriedNeighborsFor(String nodeId) {
+        return triedNeighbors.getOrDefault(nodeId, Collections.emptySet());
+    }
+    
+    public Message markNeighborTried(String nodeId, String neighborId) {
+        Map<String, Set<String>> updated = getTriedNeighbors();
+        updated.computeIfAbsent(nodeId, k -> new HashSet<>()).add(neighborId);
+        
+        return new Builder()
+            .id(this.id)
+            .type(this.type)
+            .source(this.source)
+            .target(this.target)
+            .resource(this.resource)
+            .ttl(this.ttl)
+            .pathHistory(this.pathHistory)
+            .success(this.success)
+            .triedNeighbors(updated)
+            .build();
+    }
+    
     @Override
     public String toString() {
         return String.format("Message[id=%s, type=%s, source=%s, target=%s, resource=%s, ttl=%d, hops=%d, success=%s]",
@@ -151,6 +190,7 @@ public class Message {
         private int ttl;
         private List<String> pathHistory = new ArrayList<>();
         private boolean success = false;
+        private Map<String, Set<String>> triedNeighbors = new HashMap<>();
         
         public Builder id(String id) {
             this.id = id;
@@ -192,6 +232,14 @@ public class Message {
             return this;
         }
         
+        public Builder triedNeighbors(Map<String, Set<String>> triedNeighbors) {
+            this.triedNeighbors = new HashMap<>();
+            for (Map.Entry<String, Set<String>> entry : triedNeighbors.entrySet()) {
+                this.triedNeighbors.put(entry.getKey(), new HashSet<>(entry.getValue()));
+            }
+            return this;
+        }
+        
         public Builder addToPath(String nodeId) {
             this.pathHistory.add(nodeId);
             return this;
@@ -212,7 +260,7 @@ public class Message {
                 pathHistory.add(source);
             }
             
-            return new Message(id, type, source, target, resource, ttl, pathHistory, success);
+            return new Message(id, type, source, target, resource, ttl, pathHistory, success, triedNeighbors);
         }
     }
 }

@@ -18,7 +18,6 @@ public class FloodingStrategy implements SearchStrategy {
         
         if (currentNode.hasResource(message.getResource())) {
             simulationManager.completeSuccess(currentNode, message);
-            return;
         }
         
         Message forwardMessage = message.decrementTTL().addToPath(currentNode.getId());

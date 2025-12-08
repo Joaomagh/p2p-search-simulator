@@ -1,0 +1,27 @@
+{
+  "num_nodes": 8,
+  "min_neighbors": 2,
+  "max_neighbors": 4,
+  "resources": {
+    "n1": ["fileA", "fileB"],
+    "n2": ["fileC"],
+    "n3": ["fileD"],
+    "n4": ["fileE"],
+    "n5": ["fileF"],
+    "n6": ["fileG"],
+    "n7": ["fileH"],
+    "n8": ["fileR"]
+  },
+  "edges": [
+    ["n1", "n2"],
+    ["n1", "n3"],
+    ["n2", "n4"],
+    ["n3", "n5"],
+    ["n4", "n6"],
+    ["n5", "n7"],
+    ["n6", "n8"],
+    ["n7", "n8"],
+    ["n2", "n3"]
+  ]
+}
+
